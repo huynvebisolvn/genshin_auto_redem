@@ -13,8 +13,7 @@ FAILED=0
 ALREADY_USED=0
 SUCCESS_CODES=()
 for CODE in $GENSHIN_CODES; do
-    echo "Nhap code: $CODE"
-    RESPONSE=$(curl -s --location "https://sg-hk4e-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkey?lang=en&game_biz=hk4e_global&uid=$GENSHIN_UID&region=$REGION&cdkey=$CODE" \
+    RESPONSE=$(curl -s --location "https://sg-hk4e-api.hoyoverse.com/common/apicdkey/api/webExchangeCdkey?lang=vi&game_biz=hk4e_global&uid=$GENSHIN_UID&region=$REGION&cdkey=$CODE" \
         --header "Cookie: $COOKIE" \
         --header 'Accept: application/json, text/plain, */*' \
         --header 'Accept-Encoding: gzip, deflate, br, zstd' \
@@ -22,24 +21,35 @@ for CODE in $GENSHIN_CODES; do
         --header 'x-rpc-app_version: 2.34.1' \
         --header 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' \
         --header 'x-rpc-client_type: 4')
-    RETCODE=$(echo "$RESPONSE" | grep -o '"retcode": [^,}]*' | sed 's/"retcode": //' || echo 'null')
-    MESSAGE=$(echo "$RESPONSE" | grep -o '"message": "[^"]*"' | sed 's/"message": "//' | sed 's/"$//' || echo 'Unknown error')
+    
+    # Parse JSON response
+    RETCODE=$(echo "$RESPONSE" | grep -o '"retcode":[^,}]*' | grep -o '[-0-9]*' | head -1)
+    MESSAGE=$(echo "$RESPONSE" | sed -n 's/.*"message":"\([^"]*\)".*/\1/p')
+    
+    # Neu khong lay duoc, dung gia tri mac dinh
+    [ -z "$RETCODE" ] && RETCODE="null"
+    [ -z "$MESSAGE" ] && MESSAGE="Unknown error"
     case $RETCODE in
         0)
             SUCCESS_CODES+=("$CODE")
             ((SUCCESS++))
+            echo "✓ THANH CONG: $CODE - $MESSAGE"
             ;;
         -2017|-2018)
             ((ALREADY_USED++))
+            echo "⊙ DA SU DUNG: $CODE - $MESSAGE"
             ;;
         -2001)
             ((FAILED++))
+            echo "✗ THAT BAI: $CODE - Code khong hop le - $MESSAGE"
             ;;
         -2003)
             ((FAILED++))
+            echo "✗ THAT BAI: $CODE - Code da het han - $MESSAGE"
             ;;
         *)
             ((FAILED++))
+            echo "✗ THAT BAI: $CODE - Loi khac (retcode: $RETCODE) - $MESSAGE"
             ;;
     esac
     sleep 5.5
@@ -49,6 +59,4 @@ done
 LOG_DATE=$(date '+%Y-%m-%d %H:%M:%S')
 if [ ${#SUCCESS_CODES[@]} -gt 0 ]; then
     echo "$LOG_DATE: ${SUCCESS_CODES[*]}"
-else
-    echo "$LOG_DATE: null"
 fi
