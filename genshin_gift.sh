@@ -33,30 +33,24 @@ for CODE in $GENSHIN_CODES; do
         0)
             SUCCESS_CODES+=("$CODE")
             ((SUCCESS++))
-            echo "✓ THANH CONG: $CODE - $MESSAGE"
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✓ THANH CONG: $CODE - $MESSAGE"
             ;;
         -2017|-2018)
             ((ALREADY_USED++))
-            echo "⊙ DA SU DUNG: $CODE - $MESSAGE"
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ⊙ DA SU DUNG: $CODE - $MESSAGE"
             ;;
         -2001)
             ((FAILED++))
-            echo "✗ THAT BAI: $CODE - Code khong hop le - $MESSAGE"
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✗ THAT BAI: $CODE - Code khong hop le - $MESSAGE"
             ;;
         -2003)
             ((FAILED++))
-            echo "✗ THAT BAI: $CODE - Code da het han - $MESSAGE"
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✗ THAT BAI: $CODE - Code da het han - $MESSAGE"
             ;;
         *)
             ((FAILED++))
-            echo "✗ THAT BAI: $CODE - Loi khac (retcode: $RETCODE) - $MESSAGE"
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] ✗ THAT BAI: $CODE - Loi khac (retcode: $RETCODE) - $MESSAGE"
             ;;
     esac
     sleep 5.5
 done
-
-# Ghi log
-LOG_DATE=$(date '+%Y-%m-%d %H:%M:%S')
-if [ ${#SUCCESS_CODES[@]} -gt 0 ]; then
-    echo "$LOG_DATE: ${SUCCESS_CODES[*]}"
-fi
